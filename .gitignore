@@ -1,0 +1,32 @@
+# 編譯產物
+bin/
+obj/
+*.o
+*.a
+*.so
+*.d
+
+# DPDK 相關
+dpdk/
+x86_64-native-linuxapp-gcc/
+
+# 測試產物
+*.pcap
+*.log
+test_output/
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# 核心轉儲
+core
+core.*
+
+# 臨時文件
+*.tmp
+*.bak
+
