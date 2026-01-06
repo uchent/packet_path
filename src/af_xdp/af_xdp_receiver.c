@@ -51,8 +51,8 @@ static int af_xdp_init(packet_receiver_t *receiver, const config_t *config) {
     int ret;
     
     // allocate memory
-    posix_memalign(&priv->bufs, getpagesize(), NUM_FRAMES * FRAME_SIZE);
-    if (priv->bufs == MAP_FAILED) {
+    ret = posix_memalign(&priv->bufs, getpagesize(), NUM_FRAMES * FRAME_SIZE);
+    if (ret) {
         fprintf(stderr, "Error: Failed to allocate bufs\n");
         exit(1);
     }
@@ -116,18 +116,19 @@ static int af_xdp_start(packet_receiver_t *receiver) {
 
         if (rcvd == 0) continue;
 
-        for (int i = 0; i < rcvd; i++) {
+        for (unsigned int i = 0; i < rcvd; i++) {
             const struct xdp_desc *desc = xsk_ring_cons__rx_desc(&priv->xsk_info->rx, r_idx + i);
             uint64_t addr = desc->addr;
             uint32_t len = desc->len;
 
             // receive packet pointer
-            unsigned char *pkt = xsk_umem__get_data(priv->bufs, addr);
+            // unsigned char *pkt = xsk_umem__get_data(priv->bufs, addr);
+            
             stats_update(&receiver->stats, len);
             stats_update_copy(&receiver->stats, 0);  // Zero copy
 
             if (receiver->config.verbose) {
-                printf("Packet received: %zd bytes (zero-copy)\n", len);
+                printf("Packet received: %d bytes (zero-copy)\n", len);
             }
         }
 
@@ -135,7 +136,7 @@ static int af_xdp_start(packet_receiver_t *receiver) {
 
         // refill memory blocks to Fill Ring
         xsk_ring_prod__reserve(&priv->umem_info->fq, rcvd, &priv->f_idx);
-        for (int i = 0; i < rcvd; i++) {
+        for (unsigned int i = 0; i < rcvd; i++) {
             *xsk_ring_prod__fill_addr(&priv->umem_info->fq, priv->f_idx++) =
                 xsk_ring_cons__rx_desc(&priv->xsk_info->rx, r_idx + i)->addr;
         }
