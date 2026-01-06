@@ -1,7 +1,7 @@
 # Packet Path Makefile
 
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -g -std=c11
+CFLAGS = -Wno-unused-variable -Wall -Wextra -O2 -g -std=c11
 LDFLAGS = 
 
 # Directory definitions

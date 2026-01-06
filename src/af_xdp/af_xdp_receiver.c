@@ -122,8 +122,9 @@ static int af_xdp_start(packet_receiver_t *receiver) {
             uint32_t len = desc->len;
 
             // receive packet pointer
-            // unsigned char *pkt = xsk_umem__get_data(priv->bufs, addr);
-            
+            unsigned char *pkt = xsk_umem__get_data(priv->bufs, addr);
+            // process packet here
+
             stats_update(&receiver->stats, len);
             stats_update_copy(&receiver->stats, 0);  // Zero copy
 
