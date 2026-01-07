@@ -1,7 +1,7 @@
 # Packet Datapath Makefile
 
 CC = gcc
-CFLAGS = -Wno-unused-variable -Wall -Wextra -O2 -g -std=c11
+CFLAGS = -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wall -Wextra -O2 -g -std=c11
 LDFLAGS = 
 
 # Directory definitions
@@ -17,7 +17,7 @@ INCLUDES = -I$(INCLUDE_DIR) -I$(SRC_DIR)/common
 LIBS = -lpthread -lm
 
 # Socket mode dependencies
-SOCKET_LIBS = -lpcap
+SOCKET_LIBS = 
 
 # AF_XDP mode dependencies
 AF_XDP_LIBS = -lxdp -lbpf -lelf

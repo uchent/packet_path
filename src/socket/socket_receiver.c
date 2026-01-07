@@ -10,18 +10,16 @@
 #include <linux/if_ether.h>
 #include <net/if.h>
 #include <arpa/inet.h>
-#include <pcap/pcap.h>
+#include <sys/ioctl.h>
 #include "../../include/common.h"
 #include "../../include/packet_receiver.h"
 
 typedef struct {
-    pcap_t *handle;
     int socket_fd;
 } socket_private_t;
 
 static int socket_init(packet_receiver_t *receiver, const config_t *config) {
     socket_private_t *priv = (socket_private_t *)receiver->private_data;
-    char errbuf[PCAP_ERRBUF_SIZE];
     
     if (!priv) {
         priv = calloc(1, sizeof(socket_private_t));
@@ -29,65 +27,69 @@ static int socket_init(packet_receiver_t *receiver, const config_t *config) {
         receiver->private_data = priv;
     }
     
-    // Open interface using libpcap
-    priv->handle = pcap_open_live(config->interface, 
-                                   config->buffer_size,
-                                   config->promiscuous ? 1 : 0,
-                                   config->timeout_ms,
-                                   errbuf);
-    
-    if (!priv->handle) {
-        fprintf(stderr, "Error: Failed to open interface %s: %s\n", config->interface, errbuf);
-        return -1;
+    // create raw socket
+    priv->socket_fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    if (priv->socket_fd < 0) {
+        fprintf(stderr,"socket: %s\n", strerror(errno));
+        return 1;
     }
-    
-    // Set filter (optional, receive all packets)
-    struct bpf_program fp;
-    if (pcap_compile(priv->handle, &fp, "", 0, PCAP_NETMASK_UNKNOWN) == -1) {
-        fprintf(stderr, "Warning: Failed to compile filter\n");
-    } else {
-        if (pcap_setfilter(priv->handle, &fp) == -1) {
-            fprintf(stderr, "Warning: Failed to set filter\n");
-        }
-        pcap_freecode(&fp);
+
+    // get interface index
+    struct ifreq ifr;
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, config->interface, IFNAMSIZ - 1);
+
+    if (ioctl(priv->socket_fd, SIOCGIFINDEX, &ifr) < 0) {
+        fprintf(stderr,"SIOCGIFINDEX: %s\n", strerror(errno));
+        close(priv->socket_fd);
+        exit(1);
     }
-    
+
+    // bind socket to interface
+    struct sockaddr_ll sll;
+    memset(&sll, 0, sizeof(sll));
+    sll.sll_family = AF_PACKET;
+    sll.sll_protocol = htons(ETH_P_ALL);
+    sll.sll_ifindex = ifr.ifr_ifindex;
+
+    if (bind(priv->socket_fd, (struct sockaddr *)&sll, sizeof(sll)) < 0) {
+        fprintf(stderr,"bind: %s\n", strerror(errno));
+        close(priv->socket_fd);
+        exit(1);
+    }
+
+    // set socket to promiscuous mode
+    struct packet_mreq mr;
+    memset(&mr, 0, sizeof(mr));
+    mr.mr_ifindex = ifr.ifr_ifindex;
+    mr.mr_type    = PACKET_MR_PROMISC;
+
+    if (setsockopt(priv->socket_fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP,
+                   &mr, sizeof(mr)) < 0) {
+        fprintf(stderr,"setsockopt PROMISC: %s\n", strerror(errno));
+        close(priv->socket_fd);
+        exit(1);
+    }
+
     printf("Socket mode initialized successfully, interface: %s\n", config->interface);
     return 0;
 }
 
 static int socket_start(packet_receiver_t *receiver) {
     socket_private_t *priv = (socket_private_t *)receiver->private_data;
-    struct pcap_pkthdr *header;
+    if (!priv || priv->socket_fd < 0) return -1;
+
     const u_char *packet_data;
-    int res;
-    
-    if (!priv || !priv->handle) return -1;
+    u_char buf[2048];
     
     receiver->running = true;
     printf("Starting packet reception...\n");
     
     while (receiver->running) {
-        res = pcap_next_ex(priv->handle, &header, &packet_data);
-        
-        if (res == 1) {
-            // Successfully received packet
-            // In Socket mode, packet is copied from kernel space to user space (1 copy)
-            stats_update(&receiver->stats, header->caplen);
-            stats_update_copy(&receiver->stats, 1);
-            
-            if (receiver->config.verbose) {
-                printf("Packet received: %d bytes\n", header->caplen);
-            }
-        } else if (res == 0) {
-            // Timeout
-            continue;
-        } else if (res == -1) {
-            fprintf(stderr, "Error: Failed to read packet\n");
-            break;
-        } else if (res == -2) {
-            // End of reading
-            break;
+        ssize_t len = recvfrom(priv->socket_fd, buf, sizeof(buf), 0, NULL, NULL);
+        stats_update(&receiver->stats, len);
+        if (receiver->config.verbose && len > 0) {
+            printf("Raw packet received: %ld bytes\n", len);
         }
         
         // Check if runtime duration is reached
@@ -113,9 +115,9 @@ static void socket_cleanup(packet_receiver_t *receiver) {
     socket_private_t *priv = (socket_private_t *)receiver->private_data;
     
     if (priv) {
-        if (priv->handle) {
-            pcap_close(priv->handle);
-            priv->handle = NULL;
+        if (priv->socket_fd >= 0) {
+            close(priv->socket_fd);
+            priv->socket_fd = -1;
         }
         free(priv);
         receiver->private_data = NULL;
