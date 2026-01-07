@@ -126,7 +126,6 @@ static int af_xdp_start(packet_receiver_t *receiver) {
             // process packet here
 
             stats_update(&receiver->stats, len);
-            stats_update_copy(&receiver->stats, 0);  // Zero copy
 
             if (receiver->config.verbose) {
                 printf("Packet received: %d bytes (zero-copy)\n", len);

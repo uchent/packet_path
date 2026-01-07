@@ -230,8 +230,6 @@ static int dpdk_start(packet_receiver_t *receiver) {
                 
     //             // Update statistics
     //             stats_update(&receiver->stats, pkt_len);
-    //             // DPDK uses zero-copy: packets are in mbuf pool, no copy needed
-    //             stats_update_copy(&receiver->stats, 0);
                 
     //             if (receiver->config.verbose) {
     //                 printf("Packet received: %u bytes (zero-copy)\n", pkt_len);

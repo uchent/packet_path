@@ -44,7 +44,7 @@ typedef struct {
 // Function declarations
 void stats_init(stats_t *stats);
 void stats_update(stats_t *stats, uint32_t packet_size);
-void stats_update_copy(stats_t *stats, uint32_t copy_count);
+void stats_update_dropped(stats_t *stats, uint32_t dropped_count);
 void stats_print(stats_t *stats);
 void stats_cleanup(stats_t *stats);
 

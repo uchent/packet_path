@@ -35,11 +35,11 @@ void stats_update(stats_t *stats, uint32_t packet_size) {
     pthread_mutex_unlock(&stats->mutex);
 }
 
-void stats_update_copy(stats_t *stats, uint32_t copy_count) {
+void stats_update_dropped(stats_t *stats, uint32_t dropped_count) {
     if (!stats) return;
     
     pthread_mutex_lock(&stats->mutex);
-    stats->copy_count += copy_count;
+    stats->packets_dropped += dropped_count;
     pthread_mutex_unlock(&stats->mutex);
 }
 
