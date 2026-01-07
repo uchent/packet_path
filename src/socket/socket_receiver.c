@@ -104,15 +104,6 @@ static int socket_start(packet_receiver_t *receiver) {
             }
         }
     }
-    uint32_t drops;
-    socklen_t drops_len = sizeof(drops);
-    if (getsockopt(priv->socket_fd, SOL_SOCKET, SO_RXQ_OVFL, &drops, &drops_len) < 0) {
-        fprintf(stderr,"getsockopt SO_RXQ_OVFL: %s\n", strerror(errno));
-        close(priv->socket_fd);
-        exit(1);
-    } else {
-        stats_update_dropped(&receiver->stats, drops);
-    }
     
     return 0;
 }
