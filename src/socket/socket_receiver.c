@@ -95,16 +95,8 @@ static int socket_start(packet_receiver_t *receiver) {
                 printf("Raw packet received: %ld bytes\n", len);
             }
         }
-        
-        // Check if runtime duration is reached
-        if (receiver->config.duration_sec > 0) {
-            uint64_t elapsed = get_time_ns() - receiver->stats.start_time;
-            if (elapsed / 1e9 >= receiver->config.duration_sec) {
-                break;
-            }
-        }
     }
-    
+    stats_summarize(&receiver->stats);
     return 0;
 }
 

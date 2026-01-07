@@ -141,14 +141,6 @@ static int af_xdp_start(packet_receiver_t *receiver) {
                 xsk_ring_cons__rx_desc(&priv->xsk_info->rx, r_idx + i)->addr;
         }
         xsk_ring_prod__submit(&priv->umem_info->fq, rcvd);
-        
-        // Check if runtime duration is reached
-        if (receiver->config.duration_sec > 0) {
-            uint64_t elapsed = get_time_ns() - receiver->stats.start_time;
-            if (elapsed / 1e9 >= receiver->config.duration_sec) {
-                break;
-            }
-        }
     }
     
     return 0;
