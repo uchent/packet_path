@@ -7,7 +7,7 @@ This is a Linux C project for comparing the performance and memory copy count of
 ## Project Structure
 
 ```
-packet_path/
+packet_datapath/
 ├── include/                    # Header files
 │   ├── common.h               # Common definitions and statistics structure
 │   └── packet_receiver.h      # Receiver interface definition

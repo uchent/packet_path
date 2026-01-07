@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <poll.h>
 #include <sys/mman.h>
-#include <bpf/xsk.h>
-// #include <xdp/xsk.h>
+// #include <bpf/xsk.h>
+#include <xdp/xsk.h>
 #include <bpf/bpf.h>
 #include <linux/if_link.h>
 #include "../../include/common.h"

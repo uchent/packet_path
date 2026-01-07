@@ -1,4 +1,4 @@
-# Packet Path Makefile
+# Packet Datapath Makefile
 
 CC = gcc
 CFLAGS = -Wno-unused-variable -Wall -Wextra -O2 -g -std=c11
@@ -20,7 +20,7 @@ LIBS = -lpthread -lm
 SOCKET_LIBS = -lpcap
 
 # AF_XDP mode dependencies
-AF_XDP_LIBS = -lbpf -lelf
+AF_XDP_LIBS = -lxdp -lbpf -lelf
 
 # DPDK mode dependencies
 DPDK_INCLUDE_DIR ?= /usr/include/dpdk

@@ -1,11 +1,11 @@
-# Packet Path - Packet Reception Performance Test Project
+# Packet Datapath - Packet Reception Performance Test Project
 
 This is a Linux C project for comparing the performance and copy count of different packet reception methods (Socket, AF_XDP, DPDK).
 
 ## Project Structure
 
 ```
-packet_path/
+packet_datapath/
 ├── src/
 │   ├── socket/          # Traditional Socket reception implementation
 │   ├── af_xdp/          # AF_XDP (XDP) reception implementation
