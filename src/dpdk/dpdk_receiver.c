@@ -28,38 +28,6 @@ typedef struct {
 #define MBUF_CACHE_SIZE 250
 #define BURST_SIZE 32
 
-// Find port ID by interface name
-static int find_port_id_by_name(const char *interface_name, uint16_t *port_id) {
-
-    return 0;
-    // uint16_t port_count = rte_eth_dev_count_avail();
-    
-    // for (uint16_t i = 0; i < port_count; i++) {
-    //     struct rte_eth_dev_info dev_info;
-    //     if (rte_eth_dev_info_get(i, &dev_info) != 0) {
-    //         continue;
-    //     }
-        
-    //     // Check if interface name matches
-    //     // Note: DPDK port names are typically in format "0000:XX:XX.X"
-    //     // We'll try to match by PCI address or use port index
-    //     if (strstr(dev_info.device->name, interface_name) != NULL ||
-    //         strcmp(interface_name, dev_info.device->name) == 0) {
-    //         *port_id = i;
-    //         return 0;
-    //     }
-    // }
-    
-    // // If not found by name, try to use port 0 as default
-    // if (port_count > 0) {
-    //     *port_id = 0;
-    //     fprintf(stderr, "Warning: Interface '%s' not found, using port 0\n", interface_name);
-    //     return 0;
-    // }
-    
-    // return -1;
-}
-
 // DPDK initialization (requires full DPDK environment)
 static int dpdk_init(packet_receiver_t *receiver, const config_t *config) {
     // dpdk_private_t *priv = (dpdk_private_t *)receiver->private_data;

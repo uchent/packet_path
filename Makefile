@@ -36,8 +36,9 @@ COMMON_OBJS = $(COMMON_SRCS:$(SRC_DIR)/common/%.c=$(OBJ_DIR)/common/%.o)
 SOCKET_SRCS = $(wildcard $(SRC_DIR)/socket/*.c)
 SOCKET_OBJS = $(SOCKET_SRCS:$(SRC_DIR)/socket/%.c=$(OBJ_DIR)/socket/%.o)
 
-AF_XDP_SRCS = $(filter-out %_stub.c, $(wildcard $(SRC_DIR)/af_xdp/*.c))
+AF_XDP_SRCS = $(filter-out %_stub.c %xdp_kern.c, $(wildcard $(SRC_DIR)/af_xdp/*.c))
 AF_XDP_OBJS = $(AF_XDP_SRCS:$(SRC_DIR)/af_xdp/%.c=$(OBJ_DIR)/af_xdp/%.o)
+XDP_KERN_OBJ = $(OBJ_DIR)/af_xdp/xdp_kern.o
 
 DPDK_SRCS = $(filter-out %_stub.c, $(wildcard $(SRC_DIR)/dpdk/*.c))
 DPDK_OBJS = $(DPDK_SRCS:$(SRC_DIR)/dpdk/%.c=$(OBJ_DIR)/dpdk/%.o)
@@ -67,6 +68,10 @@ $(OBJ_DIR)/socket/%.o: $(SRC_DIR)/socket/%.c
 $(OBJ_DIR)/af_xdp/%.o: $(SRC_DIR)/af_xdp/%.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
+# Compile XDP kernel program with clang
+$(XDP_KERN_OBJ): $(SRC_DIR)/af_xdp/xdp_kern.c
+	clang -O2 -g -target bpf -c $< -o $@
+
 # Compile DPDK module
 $(OBJ_DIR)/dpdk/%.o: $(SRC_DIR)/dpdk/%.c
 	@if [ ! -d "$(DPDK_INCLUDE_DIR)" ] || [ ! -f "$(DPDK_INCLUDE_DIR)/rte_eal.h" ]; then \
@@ -82,9 +87,9 @@ $(OBJ_DIR)/main.o: $(MAIN_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Link executable
-$(TARGET): $(COMMON_OBJS) $(SOCKET_OBJS) $(AF_XDP_OBJS) $(DPDK_OBJS) $(MAIN_OBJ)
+$(TARGET): $(COMMON_OBJS) $(SOCKET_OBJS) $(AF_XDP_OBJS) $(XDP_KERN_OBJ) $(DPDK_OBJS) $(MAIN_OBJ)
 	@if [ -n "$(DPDK_OBJS)" ] && [ "$(shell ls $(DPDK_OBJS) 2>/dev/null | grep -v stub | wc -l)" -gt 0 ] && [ -d "$(DPDK_INCLUDE_DIR)" ]; then \
-		$(CC) $(LDFLAGS) $^ -o $@ $(LIBS) $(SOCKET_LIBS) $(AF_XDP_LIBS) $(DPDK_LIBS); \
+		$(CC) $(LDFLAGS) $(COMMON_OBJS) $(SOCKET_OBJS) $(AF_XDP_OBJS) $(DPDK_OBJS) $(MAIN_OBJ) -o $@ $(LIBS) $(SOCKET_LIBS) $(AF_XDP_LIBS) $(DPDK_LIBS); \
 	else \
 		$(CC) $(LDFLAGS) $(COMMON_OBJS) $(SOCKET_OBJS) $(AF_XDP_OBJS) $(MAIN_OBJ) -o $@ $(LIBS) $(SOCKET_LIBS) $(AF_XDP_LIBS); \
 	fi
@@ -99,7 +104,7 @@ socket: directories $(COMMON_OBJS) $(SOCKET_OBJS) $(MAIN_OBJ)
 
 # Compile AF_XDP mode only
 AF_XDP_STUB_OBJ = $(OBJ_DIR)/socket/socket_receiver_stub.o $(OBJ_DIR)/dpdk/dpdk_receiver_stub.o
-af_xdp: directories $(COMMON_OBJS) $(AF_XDP_OBJS) $(MAIN_OBJ)
+af_xdp: directories $(COMMON_OBJS) $(AF_XDP_OBJS) $(XDP_KERN_OBJ) $(MAIN_OBJ)
 	@mkdir -p $(OBJ_DIR)/socket $(OBJ_DIR)/dpdk
 	@$(CC) $(CFLAGS) $(INCLUDES) -c src/socket/socket_receiver_stub.c -o $(OBJ_DIR)/socket/socket_receiver_stub.o 2>/dev/null || true
 	@$(CC) $(CFLAGS) $(INCLUDES) -c src/dpdk/dpdk_receiver_stub.c -o $(OBJ_DIR)/dpdk/dpdk_receiver_stub.o 2>/dev/null || true
