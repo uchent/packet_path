@@ -79,7 +79,6 @@ typedef struct {
     int (*start)(packet_receiver_t *receiver);
     int (*stop)(packet_receiver_t *receiver);
     void (*cleanup)(packet_receiver_t *receiver);
-    stats_t* (*get_stats)(packet_receiver_t *receiver);
 } receiver_ops_t;
 ```
 

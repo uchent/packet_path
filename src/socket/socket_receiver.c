@@ -96,7 +96,6 @@ static int socket_start(packet_receiver_t *receiver) {
             }
         }
     }
-    stats_summarize(&receiver->stats);
     return 0;
 }
 
@@ -120,10 +119,6 @@ static void socket_cleanup(packet_receiver_t *receiver) {
     }
 }
 
-static stats_t* socket_get_stats(packet_receiver_t *receiver) {
-    return receiver ? &receiver->stats : NULL;
-}
-
 // Create Socket receiver
 packet_receiver_t* socket_receiver_create(void) {
     packet_receiver_t *receiver = calloc(1, sizeof(packet_receiver_t));
@@ -134,7 +129,6 @@ packet_receiver_t* socket_receiver_create(void) {
     receiver->ops.start = socket_start;
     receiver->ops.stop = socket_stop;
     receiver->ops.cleanup = socket_cleanup;
-    receiver->ops.get_stats = socket_get_stats;
     
     stats_init(&receiver->stats);
     

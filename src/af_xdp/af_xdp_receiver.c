@@ -221,8 +221,6 @@ static int af_xdp_start(packet_receiver_t *receiver) {
         }
         xsk_ring_prod__submit(&priv->umem_info->fq, rcvd);
     }
-    stats_summarize(&receiver->stats);
-    
     return 0;
 }
 
@@ -258,10 +256,6 @@ static void af_xdp_cleanup(packet_receiver_t *receiver) {
     }
 }
 
-static stats_t* af_xdp_get_stats(packet_receiver_t *receiver) {
-    return receiver ? &receiver->stats : NULL;
-}
-
 // Create AF_XDP receiver
 packet_receiver_t* af_xdp_receiver_create(void) {
     packet_receiver_t *receiver = calloc(1, sizeof(packet_receiver_t));
@@ -272,7 +266,6 @@ packet_receiver_t* af_xdp_receiver_create(void) {
     receiver->ops.start = af_xdp_start;
     receiver->ops.stop = af_xdp_stop;
     receiver->ops.cleanup = af_xdp_cleanup;
-    receiver->ops.get_stats = af_xdp_get_stats;
     
     stats_init(&receiver->stats);
     

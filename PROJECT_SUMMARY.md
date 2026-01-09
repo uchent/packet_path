@@ -52,7 +52,6 @@ All reception modes implement the same `receiver_ops_t` interface:
 - `start()`: Start reception
 - `stop()`: Stop reception
 - `cleanup()`: Cleanup resources
-- `get_stats()`: Get statistics
 
 ### 3. Statistics Framework
 

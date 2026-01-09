@@ -257,10 +257,6 @@ static void dpdk_cleanup(packet_receiver_t *receiver) {
     // }
 }
 
-static stats_t* dpdk_get_stats(packet_receiver_t *receiver) {
-    return receiver ? &receiver->stats : NULL;
-}
-
 // Create DPDK receiver
 packet_receiver_t* dpdk_receiver_create(void) {
     packet_receiver_t *receiver = calloc(1, sizeof(packet_receiver_t));
@@ -271,7 +267,6 @@ packet_receiver_t* dpdk_receiver_create(void) {
     receiver->ops.start = dpdk_start;
     receiver->ops.stop = dpdk_stop;
     receiver->ops.cleanup = dpdk_cleanup;
-    receiver->ops.get_stats = dpdk_get_stats;
     
     stats_init(&receiver->stats);
     

@@ -12,7 +12,6 @@ typedef struct {
     int (*start)(packet_receiver_t *receiver);
     int (*stop)(packet_receiver_t *receiver);
     void (*cleanup)(packet_receiver_t *receiver);
-    stats_t* (*get_stats)(packet_receiver_t *receiver);
 } receiver_ops_t;
 
 // Receiver structure
@@ -32,7 +31,6 @@ int packet_receiver_init(packet_receiver_t *receiver, const config_t *config);
 int packet_receiver_start(packet_receiver_t *receiver);
 int packet_receiver_stop(packet_receiver_t *receiver);
 void packet_receiver_cleanup(packet_receiver_t *receiver);
-stats_t* packet_receiver_get_stats(packet_receiver_t *receiver);
 
 #endif // PACKET_RECEIVER_H
 

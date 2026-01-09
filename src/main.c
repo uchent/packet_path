@@ -73,14 +73,6 @@ int main(int argc, char *argv[]) {
     
     g_receiver = receiver;
     receiver->config = config;
-
-    // Create terminate thread
-    thread_args_t args;
-    args.main_tid = pthread_self();
-    args.sleep_seconds = config.duration_sec;
-    pthread_t terminate_thread_id;
-    pthread_create(&terminate_thread_id, NULL, terminate_thread, &args);
-    pthread_detach(terminate_thread_id);
     
     // Initialize receiver
     if (receiver->ops.init(receiver, &config) != 0) {
@@ -88,8 +80,17 @@ int main(int argc, char *argv[]) {
         packet_receiver_cleanup(receiver);
         return 1;
     }
+
+    // Create terminate thread before starting reception
+    thread_args_t args;
+    args.main_tid = pthread_self();
+    args.sleep_seconds = config.duration_sec;
+    pthread_t terminate_thread_id;
+    pthread_create(&terminate_thread_id, NULL, terminate_thread, &args);
+    pthread_detach(terminate_thread_id);
     
     // Start reception
+    receiver->stats.start_time_ns = get_time_ns();
     if (receiver->ops.start(receiver) != 0) {
         fprintf(stderr, "Error: Receiver start failed\n");
         packet_receiver_cleanup(receiver);
@@ -97,7 +98,8 @@ int main(int argc, char *argv[]) {
     }
     
     // Display statistics
-    stats_print(receiver->ops.get_stats(receiver));
+    receiver->stats.end_time_ns = get_time_ns();
+    stats_summarize(&receiver->stats);
     
     // Cleanup
     packet_receiver_cleanup(receiver);
@@ -142,10 +144,5 @@ void packet_receiver_cleanup(packet_receiver_t *receiver) {
     if (receiver && receiver->ops.cleanup) {
         receiver->ops.cleanup(receiver);
     }
-}
-
-stats_t* packet_receiver_get_stats(packet_receiver_t *receiver) {
-    if (!receiver || !receiver->ops.get_stats) return NULL;
-    return receiver->ops.get_stats(receiver);
 }
 

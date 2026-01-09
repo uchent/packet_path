@@ -10,8 +10,6 @@ void stats_init(stats_t *stats) {
     if (!stats) return;
     
     memset(stats, 0, sizeof(stats_t));
-    stats->first_update_time = 0;
-    stats->last_update_time = 0;
     pthread_mutex_init(&stats->mutex, NULL);
 }
 
@@ -22,26 +20,7 @@ void stats_update(stats_t *stats, uint32_t packet_size) {
     
     stats->packets_received++;
     stats->bytes_received += packet_size;
-    if (stats->first_update_time == 0) {
-        stats->first_update_time = get_time_ns();
-        stats->last_update_time = stats->first_update_time;
-    } else {
-        stats->last_update_time = get_time_ns();
-    }
 
-    pthread_mutex_unlock(&stats->mutex);
-}
-
-void stats_summarize(stats_t *stats) {
-    if (!stats) return;
-    
-    pthread_mutex_lock(&stats->mutex);
-    uint64_t runtime_ns = stats->last_update_time - stats->first_update_time;
-    double runtime_sec = runtime_ns / 1e9;
-    if (runtime_sec > 0) {
-        stats->pps = stats->packets_received / runtime_sec;
-        stats->bps = (stats->bytes_received * 8.0) / runtime_sec;
-    }
     pthread_mutex_unlock(&stats->mutex);
 }
 
@@ -53,13 +32,17 @@ void stats_update_dropped(stats_t *stats, uint32_t dropped_count) {
     pthread_mutex_unlock(&stats->mutex);
 }
 
-void stats_print(stats_t *stats) {
+void stats_summarize(stats_t *stats) {
     if (!stats) return;
     
     pthread_mutex_lock(&stats->mutex);
     
-    uint64_t runtime_ns = stats->last_update_time - stats->first_update_time;
+    uint64_t runtime_ns = stats->end_time_ns - stats->start_time_ns;
     double runtime_sec = runtime_ns / 1e9;
+    if (runtime_sec > 0) {
+        stats->pps = stats->packets_received / runtime_sec;
+        stats->bps = (stats->bytes_received * 8.0) / runtime_sec;
+    }
     
     printf("\n========== Statistics ==========\n");
     printf("Run time: %.2f seconds\n", runtime_sec);
