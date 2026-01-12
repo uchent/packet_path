@@ -34,9 +34,11 @@ typedef struct {
 typedef struct {
     packet_mode_t mode;              // Reception mode
     char interface[16];              // Network interface name
+    char address[16];                // PCI address
+    uint16_t port_id;                // Port ID
     bool promiscuous;                // Promiscuous mode
     uint32_t buffer_size;            // Buffer size
-    uint32_t timeout_ms;              // Timeout (milliseconds)
+    uint32_t timeout_ms;             // Timeout (milliseconds)
     bool verbose;                    // Verbose output
     uint32_t duration_sec;           // Runtime duration (seconds, 0 means infinite)
 } config_t;

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <time.h>
 #include "../../include/common.h"
@@ -85,6 +86,8 @@ int parse_args(int argc, char *argv[], config_t *config) {
     // Default configuration
     config->mode = MODE_SOCKET;
     strncpy(config->interface, "eth0", sizeof(config->interface) - 1);
+    strncpy(config->address, "0000:03:00.0", sizeof(config->address) - 1);
+    config->port_id = UINT16_MAX;
     config->promiscuous = true;
     config->buffer_size = 65536;
     config->timeout_ms = 1000;
@@ -101,8 +104,11 @@ int parse_args(int argc, char *argv[], config_t *config) {
                 config->mode = MODE_DPDK;
             }
             i++;
-        } else if (strcmp(argv[i], "--interface") == 0 && i + 1 < argc) {
+        } else if ((strcmp(argv[i], "--interface") == 0 || strcmp(argv[i], "-i") == 0) && i + 1 < argc) {
             strncpy(config->interface, argv[i + 1], sizeof(config->interface) - 1);
+            i++;
+        } else if ((strcmp(argv[i], "--address") == 0 || strcmp(argv[i], "-a") == 0) && i + 1 < argc) {
+            strncpy(config->address, argv[i + 1], sizeof(config->address) - 1);
             i++;
         } else if (strcmp(argv[i], "--duration") == 0 && i + 1 < argc) {
             config->duration_sec = atoi(argv[i + 1]);
@@ -113,7 +119,8 @@ int parse_args(int argc, char *argv[], config_t *config) {
             printf("Usage: %s [options]\n", argv[0]);
             printf("Options:\n");
             printf("  --mode <socket|af_xdp|dpdk>  Receive mode (default: socket)\n");
-            printf("  --interface <name>           Network interface (default: eth0)\n");
+            printf("  --interface <name>, -i       Network interface (default: eth0)\n");
+            printf("  --address <pci address>, -a  PCI address (default: 0000:03:00.0), used for DPDK mode\n");
             printf("  --duration <seconds>         Runtime duration (0=infinite, default: 0)\n");
             printf("  --verbose, -v                Verbose output\n");
             printf("  --help, -h                   Show this help\n");
