@@ -76,9 +76,9 @@ uint64_t get_time_ns(void) {
 
 void print_banner(void) {
     printf("\n");
-    printf("╔═══════════════════════════════════════════╗\n");
-    printf("║   Packet Datapath - Performance Test Tool ║\n");
-    printf("╚═══════════════════════════════════════════╝\n");
+    printf("╔═════════════════════════════════════════════╗\n");
+    printf("║   Packet Datapath - Performance Test Tool   ║\n");
+    printf("╚═════════════════════════════════════════════╝\n");
     printf("\n");
 }
 
