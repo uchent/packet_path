@@ -25,14 +25,6 @@ void stats_update(stats_t *stats, uint32_t packet_size) {
     pthread_mutex_unlock(&stats->mutex);
 }
 
-void stats_update_dropped(stats_t *stats, uint32_t dropped_count) {
-    if (!stats) return;
-    
-    pthread_mutex_lock(&stats->mutex);
-    stats->packets_dropped += dropped_count;
-    pthread_mutex_unlock(&stats->mutex);
-}
-
 void stats_summarize(stats_t *stats) {
     if (!stats) return;
     
@@ -50,14 +42,8 @@ void stats_summarize(stats_t *stats) {
     printf("Packets received: %lu\n", stats->packets_received);
     printf("Bytes received: %lu (%.2f MB)\n", 
            stats->bytes_received, stats->bytes_received / (1024.0 * 1024.0));
-    printf("Packets dropped: %lu\n", stats->packets_dropped);
     printf("Packet rate: %.2f PPS\n", stats->pps);
     printf("Bit rate: %.2f Mbps\n", stats->bps / 1e6);
-    printf("Memory copy count: %lu\n", stats->copy_count);
-    if (stats->packets_received > 0) {
-        printf("Average copies per packet: %.2f\n", 
-               (double)stats->copy_count / stats->packets_received);
-    }
     printf("=============================\n");
     
     pthread_mutex_unlock(&stats->mutex);
